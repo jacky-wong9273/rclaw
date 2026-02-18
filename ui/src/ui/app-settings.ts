@@ -245,6 +245,18 @@ export async function refreshActiveTab(host: SettingsHost) {
     await loadLogs(host as unknown as OpenClawApp, { reset: true });
     scheduleLogsScroll(host as unknown as Parameters<typeof scheduleLogsScroll>[0], true);
   }
+  if (host.tab === "dashboard-roles") {
+    await (host as unknown as OpenClawApp).handleLoadDashboardRoles();
+  }
+  if (host.tab === "dashboard-progress") {
+    await (host as unknown as OpenClawApp).handleLoadDashboardWork();
+  }
+  if (host.tab === "dashboard-reports") {
+    await (host as unknown as OpenClawApp).handleLoadDashboardReports();
+  }
+  if (host.tab === "dashboard-security") {
+    await (host as unknown as OpenClawApp).handleLoadDashboardSecurity();
+  }
 }
 
 export function inferBasePath() {

@@ -334,6 +334,37 @@ export class OpenClawApp extends LitElement {
   @state() logsMaxBytes = 250_000;
   @state() logsAtBottom = true;
 
+  /* ── Dashboard: Roles ── */
+  @state() dashboardRolesLoading = false;
+  @state() dashboardRolesError: string | null = null;
+  @state() dashboardRoles: import("./views/dashboard-roles.ts").RoleDefinition[] = [];
+  @state() dashboardRoleAssignments: import("./views/dashboard-roles.ts").RoleAssignmentEntry[] = [];
+  @state() dashboardSelectedRoleId: string | null = null;
+  @state() dashboardEditingRole: import("./views/dashboard-roles.ts").RoleDefinition | null = null;
+
+  /* ── Dashboard: Work Progress ── */
+  @state() dashboardWorkLoading = false;
+  @state() dashboardWorkError: string | null = null;
+  @state() dashboardTasks: import("./views/dashboard-work-progress.ts").TaskEntry[] = [];
+  @state() dashboardWorkSummary: import("./views/dashboard-work-progress.ts").WorkSummaryData | null = null;
+  @state() dashboardAgentWorkloads: import("./views/dashboard-work-progress.ts").AgentWorkloadEntry[] = [];
+
+  /* ── Dashboard: Reports ── */
+  @state() dashboardReportsLoading = false;
+  @state() dashboardReportsError: string | null = null;
+  @state() dashboardReports: import("./views/dashboard-reports.ts").ReportEntry[] = [];
+  @state() dashboardReportSummary: import("./views/dashboard-reports.ts").ReportSummary | null = null;
+  @state() dashboardReportTimeRange: "1h" | "24h" | "7d" | "30d" | "all" = "24h";
+  @state() dashboardReportWorkflowFilter: string | undefined = undefined;
+
+  /* ── Dashboard: Security ── */
+  @state() dashboardSecurityLoading = false;
+  @state() dashboardSecurityError: string | null = null;
+  @state() dashboardSecurityPolicies: import("./views/dashboard-security.ts").SecurityPolicyEntry[] = [];
+  @state() dashboardAuditLog: import("./views/dashboard-security.ts").AuditLogEntry[] = [];
+  @state() dashboardAuditLogLoading = false;
+  @state() dashboardEditingPolicy: import("./views/dashboard-security.ts").SecurityPolicyEntry | null = null;
+
   client: GatewayBrowserClient | null = null;
   private chatScrollFrame: number | null = null;
   private chatScrollTimeout: number | null = null;
@@ -573,6 +604,82 @@ export class OpenClawApp extends LitElement {
     const newRatio = Math.max(0.4, Math.min(0.7, ratio));
     this.splitRatio = newRatio;
     this.applySettings({ ...this.settings, splitRatio: newRatio });
+  }
+
+  /* ── Dashboard RPC loaders ── */
+
+  async handleLoadDashboardRoles() {
+    if (!this.client) return;
+    this.dashboardRolesLoading = true;
+    this.dashboardRolesError = null;
+    try {
+      const res = await this.client.call("multiAgent.roles.list", {});
+      if (res && typeof res === "object") {
+        this.dashboardRoles = (res as Record<string, unknown>).roles as typeof this.dashboardRoles ?? [];
+        this.dashboardRoleAssignments = (res as Record<string, unknown>).assignments as typeof this.dashboardRoleAssignments ?? [];
+      }
+    } catch (err) {
+      this.dashboardRolesError = `Failed to load roles: ${String(err)}`;
+    } finally {
+      this.dashboardRolesLoading = false;
+    }
+  }
+
+  async handleLoadDashboardWork() {
+    if (!this.client) return;
+    this.dashboardWorkLoading = true;
+    this.dashboardWorkError = null;
+    try {
+      const res = await this.client.call("multiAgent.work.progress", {});
+      if (res && typeof res === "object") {
+        const data = res as Record<string, unknown>;
+        this.dashboardTasks = (data.tasks as typeof this.dashboardTasks) ?? [];
+        this.dashboardWorkSummary = (data.summary as typeof this.dashboardWorkSummary) ?? null;
+        this.dashboardAgentWorkloads = (data.agentWorkloads as typeof this.dashboardAgentWorkloads) ?? [];
+      }
+    } catch (err) {
+      this.dashboardWorkError = `Failed to load work progress: ${String(err)}`;
+    } finally {
+      this.dashboardWorkLoading = false;
+    }
+  }
+
+  async handleLoadDashboardReports() {
+    if (!this.client) return;
+    this.dashboardReportsLoading = true;
+    this.dashboardReportsError = null;
+    try {
+      const res = await this.client.call("multiAgent.tasks.summary", {});
+      if (res && typeof res === "object") {
+        const data = res as Record<string, unknown>;
+        this.dashboardReports = (data.reports as typeof this.dashboardReports) ?? [];
+        this.dashboardReportSummary = (data.summary as typeof this.dashboardReportSummary) ?? null;
+      }
+    } catch (err) {
+      this.dashboardReportsError = `Failed to load reports: ${String(err)}`;
+    } finally {
+      this.dashboardReportsLoading = false;
+    }
+  }
+
+  async handleLoadDashboardSecurity() {
+    if (!this.client) return;
+    this.dashboardSecurityLoading = true;
+    this.dashboardSecurityError = null;
+    try {
+      const [auditRes] = await Promise.all([
+        this.client.call("multiAgent.security.audit", {}),
+      ]);
+      if (auditRes && typeof auditRes === "object") {
+        const data = auditRes as Record<string, unknown>;
+        this.dashboardAuditLog = (data.entries as typeof this.dashboardAuditLog) ?? [];
+        this.dashboardSecurityPolicies = (data.policies as typeof this.dashboardSecurityPolicies) ?? [];
+      }
+    } catch (err) {
+      this.dashboardSecurityError = `Failed to load security data: ${String(err)}`;
+    } finally {
+      this.dashboardSecurityLoading = false;
+    }
   }
 
   render() {

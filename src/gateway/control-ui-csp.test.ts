@@ -9,4 +9,22 @@ describe("buildControlUiCspHeader", () => {
     expect(csp).not.toContain("script-src 'self' 'unsafe-inline'");
     expect(csp).toContain("style-src 'self' 'unsafe-inline'");
   });
+
+  it("restricts img-src to self and data: only (no blanket https:)", () => {
+    const csp = buildControlUiCspHeader();
+    expect(csp).toContain("img-src 'self' data:");
+    expect(csp).not.toContain("https:");
+  });
+
+  it("only allows wss: for WebSocket connections (no plain ws:)", () => {
+    const csp = buildControlUiCspHeader();
+    expect(csp).toContain("connect-src 'self' wss:");
+    expect(csp).not.toMatch(/\bws:[^s]/);
+  });
+
+  it("includes form-action and upgrade-insecure-requests", () => {
+    const csp = buildControlUiCspHeader();
+    expect(csp).toContain("form-action 'self'");
+    expect(csp).toContain("upgrade-insecure-requests");
+  });
 });

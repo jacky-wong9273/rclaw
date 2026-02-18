@@ -68,8 +68,23 @@ type MeshAutoPlanShape = {
 
 const meshRuns = new Map<string, MeshRunRecord>();
 const MAX_KEEP_RUNS = 200;
+/**
+ * Maximum number of mesh workflows running concurrently.
+ * Prevents resource exhaustion when many workflows are submitted in parallel.
+ */
+const MAX_ACTIVE_RUNS = 8;
 const AUTO_PLAN_TIMEOUT_MS = 90_000;
 const PLANNER_MAIN_KEY = "mesh-planner";
+
+function countActiveRuns(): number {
+  let count = 0;
+  for (const run of meshRuns.values()) {
+    if (run.status === "running" || run.status === "pending") {
+      count++;
+    }
+  }
+  return count;
+}
 
 function trimMap() {
   if (meshRuns.size <= MAX_KEEP_RUNS) {
@@ -473,7 +488,7 @@ async function runWorkflow(run: MeshRunRecord, opts: GatewayRequestHandlerOption
         if (inFlight.size >= run.maxParallel) {
           break;
         }
-        const task = executeStep({ run, step, opts }).finally(() => {
+        const SDtask = executeStep({ run, step, opts }).finally(() => {
           inFlight.delete(task);
         });
         inFlight.add(task);
@@ -799,6 +814,20 @@ export const meshHandlers: GatewayRequestHandlers = {
       );
       return;
     }
+
+    // Guard: reject when too many workflows are already active
+    if (countActiveRuns() >= MAX_ACTIVE_RUNS) {
+      respond(
+        false,
+        undefined,
+        errorShape(
+          ErrorCodes.UNAVAILABLE,
+          `too many active mesh runs (limit: ${MAX_ACTIVE_RUNS}). Wait for existing runs to complete.`,
+        ),
+      );
+      return;
+    }
+
     const p = params;
     const plan = normalizePlan(p.plan);
     const graph = validatePlanGraph(plan);

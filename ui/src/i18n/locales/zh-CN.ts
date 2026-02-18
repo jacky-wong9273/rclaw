@@ -35,6 +35,10 @@ export const zh_CN: TranslationMap = {
     config: "配置",
     debug: "调试",
     logs: "日志",
+    "dashboard-roles": "角色管理",
+    "dashboard-progress": "工作进度",
+    "dashboard-reports": "报告",
+    "dashboard-security": "安全",
   },
   subtitles: {
     agents: "管理代理工作区、工具和身份。",
@@ -50,6 +54,10 @@ export const zh_CN: TranslationMap = {
     config: "安全地编辑 ~/.openclaw/openclaw.json。",
     debug: "网关快照、事件和手动 RPC 调用。",
     logs: "网关文件日志的实时追踪。",
+    "dashboard-roles": "定义代理角色、权限和分配。",
+    "dashboard-progress": "实时监控所有代理的任务进度。",
+    "dashboard-reports": "查看工作流完成报告和性能指标。",
+    "dashboard-security": "管理安全策略、权限和审计日志。",
   },
   overview: {
     access: {

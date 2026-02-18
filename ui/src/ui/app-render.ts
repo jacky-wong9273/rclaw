@@ -68,6 +68,10 @@ import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
+import { renderRolesView } from "./views/dashboard-roles.ts";
+import { renderWorkProgress } from "./views/dashboard-work-progress.ts";
+import { renderReportView } from "./views/dashboard-reports.ts";
+import { renderSecurityView } from "./views/dashboard-security.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
@@ -942,6 +946,125 @@ export function renderApp(state: AppViewState) {
                 onRefresh: () => loadLogs(state, { reset: true }),
                 onExport: (lines, label) => state.exportLogs(lines, label),
                 onScroll: (event) => state.handleLogsScroll(event),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "dashboard-roles"
+            ? renderRolesView({
+                loading: state.dashboardRolesLoading,
+                error: state.dashboardRolesError,
+                roles: state.dashboardRoles,
+                assignments: state.dashboardRoleAssignments,
+                availableAgents: (state.agentsList?.agents ?? []).map((a) => ({
+                  agentConfigId: a.id,
+                  displayName: a.id,
+                })),
+                selectedRoleId: state.dashboardSelectedRoleId,
+                editingRole: state.dashboardEditingRole,
+                onSelectRole: (roleId) => (state.dashboardSelectedRoleId = roleId),
+                onCreateRole: async (role) => {
+                  await state.client?.call("multiAgent.roles.assign", { agentConfigId: role.roleId, roleId: role.roleId });
+                  await state.handleLoadDashboardRoles();
+                },
+                onUpdateRole: async (role) => {
+                  await state.handleLoadDashboardRoles();
+                },
+                onDeleteRole: async (roleId) => {
+                  await state.handleLoadDashboardRoles();
+                },
+                onAssignRole: async (agentConfigId, roleId) => {
+                  await state.client?.call("multiAgent.roles.assign", { agentConfigId, roleId });
+                  await state.handleLoadDashboardRoles();
+                },
+                onUnassignRole: async (agentInstanceId) => {
+                  await state.client?.call("multiAgent.roles.unassign", { agentInstanceId });
+                  await state.handleLoadDashboardRoles();
+                },
+                onEditRole: (role) => (state.dashboardEditingRole = role),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "dashboard-progress"
+            ? renderWorkProgress({
+                loading: state.dashboardWorkLoading,
+                error: state.dashboardWorkError,
+                tasks: state.dashboardTasks,
+                summary: state.dashboardWorkSummary,
+                agentWorkloads: state.dashboardAgentWorkloads,
+                filter: {},
+                onFilterChange: () => {},
+                onRefresh: () => state.handleLoadDashboardWork(),
+                onCancelTask: async (taskId) => {
+                  await state.client?.call("multiAgent.tasks.cancel", { taskId });
+                  await state.handleLoadDashboardWork();
+                },
+                onRetryTask: async (taskId) => {
+                  await state.handleLoadDashboardWork();
+                },
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "dashboard-reports"
+            ? renderReportView({
+                loading: state.dashboardReportsLoading,
+                error: state.dashboardReportsError,
+                reports: state.dashboardReports,
+                summary: state.dashboardReportSummary,
+                timeRange: state.dashboardReportTimeRange,
+                workflowFilter: state.dashboardReportWorkflowFilter,
+                onTimeRangeChange: (range) => {
+                  state.dashboardReportTimeRange = range;
+                  void state.handleLoadDashboardReports();
+                },
+                onWorkflowFilterChange: (id) => {
+                  state.dashboardReportWorkflowFilter = id;
+                  void state.handleLoadDashboardReports();
+                },
+                onExportReport: () => {
+                  const data = JSON.stringify({ reports: state.dashboardReports, summary: state.dashboardReportSummary }, null, 2);
+                  const blob = new Blob([data], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `report-${Date.now()}.json`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                },
+                onRefresh: () => state.handleLoadDashboardReports(),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "dashboard-security"
+            ? renderSecurityView({
+                loading: state.dashboardSecurityLoading,
+                error: state.dashboardSecurityError,
+                policies: state.dashboardSecurityPolicies,
+                auditLog: state.dashboardAuditLog,
+                selectedAgentId: null,
+                editingPolicy: state.dashboardEditingPolicy,
+                availableAgents: (state.agentsList?.agents ?? []).map((a) => ({
+                  agentConfigId: a.id,
+                  displayName: a.id,
+                })),
+                onSelectAgent: () => {},
+                onEditPolicy: (policy) => (state.dashboardEditingPolicy = policy),
+                onSavePolicy: async (policy) => {
+                  await state.client?.call("multiAgent.security.policy.set", { policy });
+                  state.dashboardEditingPolicy = null;
+                  await state.handleLoadDashboardSecurity();
+                },
+                onDeletePolicy: async (agentId) => {
+                  await state.handleLoadDashboardSecurity();
+                },
+                onRefreshAuditLog: () => state.handleLoadDashboardSecurity(),
               })
             : nothing
         }

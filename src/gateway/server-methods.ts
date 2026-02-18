@@ -13,6 +13,7 @@ import { healthHandlers } from "./server-methods/health.js";
 import { logsHandlers } from "./server-methods/logs.js";
 import { meshHandlers } from "./server-methods/mesh.js";
 import { modelsHandlers } from "./server-methods/models.js";
+import { multiAgentHandlers } from "./server-methods/multi-agent.js";
 import { nodeHandlers } from "./server-methods/nodes.js";
 import { sendHandlers } from "./server-methods/send.js";
 import { sessionsHandlers } from "./server-methods/sessions.js";
@@ -81,6 +82,12 @@ const READ_METHODS = new Set([
   "talk.config",
   "mesh.plan",
   "mesh.status",
+  "multi-agent.roles.list",
+  "multi-agent.tasks.status",
+  "multi-agent.tasks.summary",
+  "multi-agent.agents.list",
+  "multi-agent.security.audit",
+  "multi-agent.work.progress",
 ]);
 const WRITE_METHODS = new Set([
   "send",
@@ -100,6 +107,13 @@ const WRITE_METHODS = new Set([
   "mesh.plan.auto",
   "mesh.run",
   "mesh.retry",
+  "multi-agent.roles.assign",
+  "multi-agent.roles.unassign",
+  "multi-agent.tasks.submit",
+  "multi-agent.tasks.cancel",
+  "multi-agent.agents.register",
+  "multi-agent.agents.unregister",
+  "multi-agent.security.policy.set",
 ]);
 
 function authorizeGatewayMethod(method: string, client: GatewayRequestOptions["client"]) {
@@ -178,6 +192,7 @@ export const coreGatewayHandlers: GatewayRequestHandlers = {
   ...connectHandlers,
   ...logsHandlers,
   ...meshHandlers,
+  ...multiAgentHandlers,
   ...voicewakeHandlers,
   ...healthHandlers,
   ...channelsHandlers,

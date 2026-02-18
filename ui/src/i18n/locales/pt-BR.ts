@@ -35,6 +35,10 @@ export const pt_BR: TranslationMap = {
     config: "Config",
     debug: "Debug",
     logs: "Logs",
+    "dashboard-roles": "Funções",
+    "dashboard-progress": "Progresso",
+    "dashboard-reports": "Relatórios",
+    "dashboard-security": "Segurança",
   },
   subtitles: {
     agents: "Gerenciar espaços de trabalho, ferramentas e identidades de agentes.",
@@ -50,6 +54,10 @@ export const pt_BR: TranslationMap = {
     config: "Editar ~/.openclaw/openclaw.json com segurança.",
     debug: "Snapshots do gateway, eventos e chamadas RPC manuais.",
     logs: "Acompanhamento ao vivo dos logs de arquivo do gateway.",
+    "dashboard-roles": "Defina funções, permissões e atribuições de agentes.",
+    "dashboard-progress": "Monitore o progresso das tarefas em todos os agentes em tempo real.",
+    "dashboard-reports": "Visualize relatórios de conclusão e métricas de desempenho.",
+    "dashboard-security": "Gerencie políticas de segurança, permissões e logs de auditoria.",
   },
   overview: {
     access: {

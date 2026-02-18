@@ -34,6 +34,10 @@ import type {
 import type { ChatAttachment, ChatQueueItem, CronFormState } from "./ui-types.ts";
 import type { NostrProfileFormState } from "./views/channels.nostr-profile-form.ts";
 import type { SessionLogEntry } from "./views/usage.ts";
+import type { RoleDefinition, RoleAssignmentEntry } from "./views/dashboard-roles.ts";
+import type { TaskEntry, WorkSummaryData, AgentWorkloadEntry } from "./views/dashboard-work-progress.ts";
+import type { ReportEntry, ReportSummary, ReportViewProps } from "./views/dashboard-reports.ts";
+import type { SecurityPolicyEntry, AuditLogEntry } from "./views/dashboard-security.ts";
 
 export type AppViewState = {
   settings: UiSettings;
@@ -221,6 +225,33 @@ export type AppViewState = {
   logsLimit: number;
   logsMaxBytes: number;
   logsAtBottom: boolean;
+  /* ── Dashboard: Roles ── */
+  dashboardRolesLoading: boolean;
+  dashboardRolesError: string | null;
+  dashboardRoles: RoleDefinition[];
+  dashboardRoleAssignments: RoleAssignmentEntry[];
+  dashboardSelectedRoleId: string | null;
+  dashboardEditingRole: RoleDefinition | null;
+  /* ── Dashboard: Work Progress ── */
+  dashboardWorkLoading: boolean;
+  dashboardWorkError: string | null;
+  dashboardTasks: TaskEntry[];
+  dashboardWorkSummary: WorkSummaryData | null;
+  dashboardAgentWorkloads: AgentWorkloadEntry[];
+  /* ── Dashboard: Reports ── */
+  dashboardReportsLoading: boolean;
+  dashboardReportsError: string | null;
+  dashboardReports: ReportEntry[];
+  dashboardReportSummary: ReportSummary | null;
+  dashboardReportTimeRange: ReportViewProps["timeRange"];
+  dashboardReportWorkflowFilter: string | undefined;
+  /* ── Dashboard: Security ── */
+  dashboardSecurityLoading: boolean;
+  dashboardSecurityError: string | null;
+  dashboardSecurityPolicies: SecurityPolicyEntry[];
+  dashboardAuditLog: AuditLogEntry[];
+  dashboardAuditLogLoading: boolean;
+  dashboardEditingPolicy: SecurityPolicyEntry | null;
   client: GatewayBrowserClient | null;
   refreshSessionsAfterChat: Set<string>;
   connect: () => void;
@@ -284,4 +315,9 @@ export type AppViewState = {
   handleOpenSidebar: (content: string) => void;
   handleCloseSidebar: () => void;
   handleSplitRatioChange: (ratio: number) => void;
+  /* ── Dashboard handlers ── */
+  handleLoadDashboardRoles: () => Promise<void>;
+  handleLoadDashboardWork: () => Promise<void>;
+  handleLoadDashboardReports: () => Promise<void>;
+  handleLoadDashboardSecurity: () => Promise<void>;
 };

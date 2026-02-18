@@ -76,6 +76,13 @@ function applyControlUiSecurityHeaders(res: ServerResponse) {
   res.setHeader("Content-Security-Policy", buildControlUiCspHeader());
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("X-Permitted-Cross-Domain-Policies", "none");
+  res.setHeader(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=(), payment=()",
+  );
+  // HSTS: instruct browsers to use HTTPS for 1 year, include subdomains
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 }
 
 function sendJson(res: ServerResponse, status: number, body: unknown) {
